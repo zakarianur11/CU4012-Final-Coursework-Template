@@ -140,7 +140,6 @@
     <ClCompile Include="Framework\GameObject.cpp" />
     <ClCompile Include="Framework\GameState.cpp" />
     <ClCompile Include="Framework\Input.cpp" />
-    <ClCompile Include="Framework\MusicObject.cpp" />
     <ClCompile Include="Framework\SoundObject.cpp" />
     <ClCompile Include="Framework\TileManager.cpp" />
     <ClCompile Include="Framework\Tiles.cpp" />
@@ -149,6 +148,7 @@
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="TileEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -159,7 +159,6 @@
     <ClInclude Include="Framework\GameObject.h" />
     <ClInclude Include="Framework\GameState.h" />
     <ClInclude Include="Framework\Input.h" />
-    <ClInclude Include="Framework\MusicObject.h" />
     <ClInclude Include="Framework\SoundObject.h" />
     <ClInclude Include="Framework\TileManager.h" />
     <ClInclude Include="Framework\TileMap.h" />
@@ -169,6 +168,7 @@
     <ClInclude Include="Framework\World.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="TileEditor.h" />
   </ItemGroup>
   <ItemGroup>
