@@ -1,4 +1,4 @@
-# CU4012-2nd-Coursework-Template
+# CU4012-Final-Coursework-Template
 
  I have added a basic Physics Engine which handles collisions for us, to check if you are colliding with something, just use the CompareWithTag("Name of the object you wanna compare")
  For example you wanna check if player is colliding with enemy 
