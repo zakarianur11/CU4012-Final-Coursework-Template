@@ -7,7 +7,8 @@ SoundObject::SoundObject()
 
 SoundObject::~SoundObject()
 {
-
+	delete buffer;
+	buffer = nullptr;
 }
 
 // Loads sound into memory and can be identified by key (name).

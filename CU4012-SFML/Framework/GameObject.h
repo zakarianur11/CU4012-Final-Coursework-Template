@@ -8,6 +8,7 @@
 #include <iostream>
 #include "SFML\Graphics.hpp"
 #include "Input.h"
+#include "AudioManager.h"
 
 class GameObject : public sf::RectangleShape
 {
@@ -43,6 +44,7 @@ public:
 
 	// Set the input component
 	void setInput(Input* in) { input = in; };
+	void setAudio(AudioManager* aud) { audio = aud; };
 	void setWindow(sf::RenderWindow* win) { window = win; };
 
 	std::string getCollisionDirection();
@@ -138,8 +140,9 @@ protected:
 	bool alive;
 	bool canJump;
 
-	// input component
+	// Framework component
 	Input* input;
+	AudioManager* audio;
 	sf::RenderWindow* window;
 private:
 	bool isStatic;

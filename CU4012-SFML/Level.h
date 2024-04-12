@@ -6,9 +6,9 @@
 #include "Framework/GameState.h"
 #include "Framework/World.h"
 #include "Framework/TileManager.h"
+#include "Framework/AudioManager.h"
 #include <string>
 #include <iostream>
-#include "Player.h"
 
 class Level : public BaseLevel{
 public:
@@ -21,5 +21,4 @@ public:
 	void adjustViewToWindowSize(unsigned int width, unsigned int height);
 private:
 	// Default variables for level class.
-	Player player;
 };

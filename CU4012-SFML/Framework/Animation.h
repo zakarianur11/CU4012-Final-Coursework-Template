@@ -2,7 +2,6 @@
 // Controls a single animation
 // Stores a list of frames, animation speed, looping and lipped state.
 // Returns current frame of animation based on time and updating.
-// @author Paul Robertson
 
 #pragma once
 #include "SFML\Graphics.hpp"

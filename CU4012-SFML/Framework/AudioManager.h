@@ -1,7 +1,6 @@
 // Audio Manager Class
 // Manages storage and playback of multiple sound and music objects.
 // Maintains lists of Sound and Music for playback in game
-// @author Paul Robertson
 
 #pragma once
 

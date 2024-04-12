@@ -1,7 +1,6 @@
 // Tile Map Class
 // This class represents a Tile Map environment for rendering.
 // Builds and store level sections based on Map and TileSet
-// @author Paul Robertson
 
 #pragma once
 #include <math.h>

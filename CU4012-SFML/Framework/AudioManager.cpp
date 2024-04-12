@@ -10,6 +10,13 @@ AudioManager::AudioManager()
 
 AudioManager::~AudioManager()
 {
+	// Stop all sounds and music
+	stopAllSounds();
+	stopAllMusic();
+	// Clear all sound objects
+	sounds.clear();
+	// Clear all music objects
+	musics.clear();
 }
 
 // Given a filename and key a new SOUND object is added to the list. Loading the object into memory for playback

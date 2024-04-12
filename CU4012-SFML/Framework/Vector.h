@@ -1,6 +1,5 @@
 // This vector class provides a few addition vector functions for working with sf::Vector2f
 // The functions are static and therefore the class does not require to be initialised.
-// @author Paul Robertson
 
 #pragma once
 #include "SFML\System\Vector2.hpp"

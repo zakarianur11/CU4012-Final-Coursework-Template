@@ -1,7 +1,6 @@
 // Sound object
 // Loads a sound file and stores related key.
 // Key is used to find specific sounds for playback
-// @author Paul Robertson
 
 #pragma once
 #include "SFML\Audio.hpp"
