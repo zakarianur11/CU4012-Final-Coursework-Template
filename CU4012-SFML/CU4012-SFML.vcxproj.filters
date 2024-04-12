@@ -54,9 +54,6 @@
     <ClCompile Include="TileEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Framework\Animation.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
@@ -67,6 +64,9 @@
       <Filter>Framework</Filter>
     </ClCompile>
     <ClCompile Include="Framework\Vector.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\MusicObject.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,9 +107,6 @@
     <ClInclude Include="TileEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Framework\Animation.h">
       <Filter>Framework</Filter>
     </ClInclude>
@@ -123,6 +120,9 @@
       <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="Framework\Vector.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\MusicObject.h">
       <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>

@@ -4,6 +4,7 @@
 #include "Input.h"
 #include "GameState.h"
 #include "TileManager.h"
+#include "AudioManager.h"
 #include "World.h"
 #include <string>
 #include <iostream>
@@ -30,6 +31,7 @@ protected:
 	World* world;
 	sf::View* view;
 	TileManager* tileManager;
+	AudioManager* audioManager;
 
 };
 

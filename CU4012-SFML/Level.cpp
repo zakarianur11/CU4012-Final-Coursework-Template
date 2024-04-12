@@ -1,5 +1,5 @@
 #include "Level.h"
-Level::Level(sf::RenderWindow* hwnd, Input* in, GameState* gs,sf::View* v, World* w, TileManager* tm)
+Level::Level(sf::RenderWindow* hwnd, Input* in, GameState* gs,sf::View* v, World* w, TileManager* tm, AudioManager* am)
 {
 	window = hwnd;
 	input = in;
@@ -7,11 +7,7 @@ Level::Level(sf::RenderWindow* hwnd, Input* in, GameState* gs,sf::View* v, World
 	view = v;
 	world = w;	
 	tileManager = tm;
-
-	player.setPosition(100, 100);
-	player.setInput(in);
-
-	world->AddGameObject(player);
+	audioManager = am;
 }
 
 Level::~Level()
@@ -30,20 +26,12 @@ void Level::handleInput(float dt)
 		input->setKeyUp(sf::Keyboard::Tab);
 		gameState->setCurrentState(State::TILEEDITOR);
 	}
-	player.handleInput(dt);
 }
 
 // Update game objects
 void Level::update(float dt)
 {
 
-	//Move the view to follow the player
-	view->setCenter(view->getCenter().x, 360);
-
-	sf::Vector2f playerPosition = player.getPosition();
-	float newX = std::max(playerPosition.x, view->getSize().x / 2.0f);
-	view->setCenter(newX, view->getCenter().y);
-	window->setView(*view);
 }
 
 // Render level
@@ -51,7 +39,6 @@ void Level::render()
 {
 	beginDraw();
 	tileManager->render(false);
-	window->draw(player);
 	endDraw();
 }
 
