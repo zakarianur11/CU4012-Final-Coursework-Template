@@ -1,4 +1,6 @@
 #include "TileEditor.h"
+#include "imgui.h"
+#include "imgui-SFML.h"
 
 TileEditor::TileEditor(sf::RenderWindow* hwnd, Input* in, GameState* game, sf::View* v, World* w, TileManager* tm)
 {
@@ -88,6 +90,7 @@ void TileEditor::render()
 	window->setView(*view);
 	tileManager->render(true);
 
+	ImGui::Checkbox("CheckBox", &stuff);
 	//ALL the HUD should be drawn after this line
 	window->setView(hudView);
 	window->draw(TileEditorText);
@@ -101,7 +104,7 @@ void TileEditor::beginDraw()
 
 void TileEditor::endDraw()
 {
-	window->display();
+	//window->display();
 }
 
 void TileEditor::moveView(float dt)

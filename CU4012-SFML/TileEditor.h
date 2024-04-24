@@ -35,5 +35,8 @@ private:
 	sf::Font font;
 	
 	sf::Vector2f originalViewSize;
+
+
+	bool stuff;
 };
 

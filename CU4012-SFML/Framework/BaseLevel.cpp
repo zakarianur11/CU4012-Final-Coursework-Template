@@ -19,5 +19,5 @@ void BaseLevel::beginDraw()
 // Ends rendering to the back buffer, and swaps buffer to the screen.
 void BaseLevel::endDraw()
 {
-	window->display();
+	//window->display();
 }
