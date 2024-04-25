@@ -114,7 +114,7 @@ void Menu::MoveDown()
 	}
 
 }
-int Menu::handleInput(float dt)
+void Menu::handleInput(float dt)
 {
 	// Keyboard handling for menu navigation
 	if (input->isKeyDown(sf::Keyboard::Up)) {
@@ -149,13 +149,10 @@ int Menu::handleInput(float dt)
 		}
 	}
 
-	return 0; // Return value can be used if needed for further input handling logic
-
 }
 
 void Menu::render()
 {
-	beginDraw();
 	window->draw(menu_sprite);
 	window->draw(Title);
 	for (int i = 0; i < 2; i++)
@@ -169,17 +166,4 @@ void Menu::render()
 	//	window->draw(UIText[i].getDebugShape());
 	//}
 
-	endDraw();
-}
-
-
-
-
-void Menu::beginDraw()
-{
-	window->clear(sf::Color(100, 149, 237));
-}
-void Menu::endDraw()
-{
-	//window->display();
 }

@@ -19,8 +19,8 @@ public:
 	void render();
 	void moveView(float dt);
 	void beginDraw();
-	void endDraw();
 
+	void DrawImGui();
 private:
 	// Default variables for level class.
 	sf::RenderWindow* window;
@@ -36,7 +36,16 @@ private:
 	
 	sf::Vector2f originalViewSize;
 
-
 	bool stuff;
+
+	float imguiWidth;
+	float imguiHeight;
+
+	//moving the view variables
+	float currentZoomLevel = 1.0f;
+	sf::Vector2i lastMousePos;
+	bool isDragging = false;
+	sf::Texture mouseCurosorTex;
+	sf::Sprite mouseCurosorGrab;
 };
 

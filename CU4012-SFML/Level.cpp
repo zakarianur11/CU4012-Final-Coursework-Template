@@ -55,9 +55,7 @@ void Level::update(float dt)
 // Render level
 void Level::render()
 {
-	beginDraw();
 	tileManager->render(false);
-	endDraw();
 }
 
 

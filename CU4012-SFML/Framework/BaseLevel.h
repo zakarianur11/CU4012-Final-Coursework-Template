@@ -20,10 +20,6 @@ public:
 	virtual void render() = 0;
 
 protected:
-	// Default functions for rendering to the screen.
-	void beginDraw();
-	void endDraw();
-
 	// Default variables for level class.
 	sf::RenderWindow* window;
 	Input* input;

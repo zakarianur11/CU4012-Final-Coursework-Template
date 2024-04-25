@@ -2,8 +2,6 @@
 
 
 #include <SFML/Graphics.hpp>
-#define WINDOWWIDTH 1080
-#define WINDOWHEIGHT 720
 class UI 
 {
     sf::FloatRect collisionBox;

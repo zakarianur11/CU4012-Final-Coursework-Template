@@ -105,6 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)imgui;$(ProjectDir)/SFML/include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -170,6 +171,7 @@
     <ClInclude Include="Framework\TileMap.h" />
     <ClInclude Include="Framework\Tiles.h" />
     <ClInclude Include="Framework\UI.h" />
+    <ClInclude Include="Framework\Utilities.h" />
     <ClInclude Include="Framework\Vector.h" />
     <ClInclude Include="Framework\World.h" />
     <ClInclude Include="imgui\imconfig-SFML.h" />

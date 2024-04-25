@@ -170,6 +170,9 @@
     <ClInclude Include="imgui\imstb_truetype.h">
       <Filter>Framework\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="Framework\Utilities.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Framework\DO_NOT_EDIT.txt">
