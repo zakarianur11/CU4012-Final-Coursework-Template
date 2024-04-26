@@ -1,11 +1,17 @@
 #include "TileManager.h"
 #include "Collision.h"
+#include "imgui.h"
+#include "imgui-SFML.h"
+#include "Utilities.h"
 
 TileManager::TileManager()
 {
     filePath = "TilesData.txt";
-}
 
+    // Set up ImGui variables
+    imguiWidth = SCREEN_WIDTH / 4;
+    imguiHeight = SCREEN_HEIGHT;
+}
 
 void TileManager::handleInput(float dt)
 {
@@ -305,4 +311,115 @@ void TileManager::RemoveCollectable()
 
     tiles.erase(newEnd, tiles.end());
 }
+
+void TileManager::DrawImGui()
+{
+    ImVec2 imguiSize(imguiWidth, imguiHeight);
+    ImVec2 imguiPos(SCREEN_WIDTH - imguiWidth, 0); // Positioned on the right-hand side
+
+    // Set the window size
+    ImGui::SetNextWindowSize(imguiSize);
+
+    // Set the window position
+    ImGui::SetNextWindowPos(imguiPos);
+
+    // Window flags
+    ImGuiWindowFlags window_flags = 0;
+    window_flags |= ImGuiWindowFlags_NoMove;          // The window will not be movable
+    window_flags |= ImGuiWindowFlags_NoResize;        // Disable resizing
+    window_flags |= ImGuiWindowFlags_NoCollapse;      // Disable collapsing
+    //window_flags |= ImGuiWindowFlags_NoTitleBar;      // Disable the title bar
+    //window_flags |= ImGuiWindowFlags_NoScrollbar;     // Disable the scrollbar
+
+
+    // Use static variables to store the range, adjust as necessary
+    static float maxPosition = 800.0f;
+    static float maxSize = 200.0f;
+
+
+    ImGui::Begin("Tile Editor", nullptr, window_flags);
+    if (ImGui::CollapsingHeader("Help"))
+    {
+		ImGui::Text("Left Click: Place Tile");
+		ImGui::Text("Delete: Delete Tile");
+		ImGui::Text("Ctrl+D: Duplicate Tile");
+		ImGui::Text("Tab: Save and Exit");
+    }
+    if (ImGui::BeginTabBar("Tile Editor Tabs")) {
+        if (ImGui::BeginTabItem("Tiles")) {
+            static int selectedTileIndex = -1;
+
+            // Tiles List
+            if (ImGui::BeginListBox("Tile List")) {
+                for (int i = 0; i < tiles.size(); i++) {
+                    std::string item_label = tiles[i]->getTag() + "##" + std::to_string(i);
+                    bool isSelected = (selectedTileIndex == i);
+                    if (ImGui::Selectable(item_label.c_str(), isSelected)) {
+                        selectedTileIndex = i;
+                    }
+                    if (isSelected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndListBox();
+            }
+            // Properties of the selected tile
+            if (selectedTileIndex != -1 && selectedTileIndex < tiles.size()) {
+                auto& selectedTile = tiles[selectedTileIndex];
+
+                // Handle position dragging
+                sf::Vector2f pos = selectedTile->getPosition();
+                ImGui::DragFloat2("Position##PosDrag", &pos.x, 0.5f, 0, 0, "%.3f");
+                //if (ImGui::IsItemActive()) 
+                //{
+                //}
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Click and drag to adjust value, or double click and type to enter directly.");
+                }
+                selectedTile->setPosition(pos);
+
+                // Handle size dragging
+                sf::Vector2f size = selectedTile->getSize();
+                ImGui::DragFloat2("Size##SizeDrag", &size.x, 0.1f, 0, 0, "%.3f");
+                //if (ImGui::IsItemActive()) {
+                //}
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Click and drag to adjust value, or double click and type to enter directly.");
+                }
+                selectedTile->setSize(size);
+            }
+
+            if (ImGui::Button("Add New Tile##AddTile")) {
+                // Logic to add a new tile
+            }
+            ImGui::SameLine();
+            // Delete the selected tile
+            if (ImGui::Button("Delete Tile##DeleteTile") && selectedTileIndex != -1) {
+                if (selectedTileIndex >= 0 && selectedTileIndex < tiles.size()) {
+                    world->RemoveGameObject(*tiles[selectedTileIndex]); // Make sure this does not cause the error
+
+                    // After removing the tile from the game world, erase it from the vector
+                    tiles.erase(tiles.begin() + selectedTileIndex);
+
+                    // Reset selected index to prevent accessing a non-existent vector element
+                    selectedTileIndex = -1;  // Reset selection
+                }
+            }
+
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Settings")) {
+            // Global settings for tiles can be placed here
+            ImGui::Text("General settings for the tile editor.");
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
+    ImGui::Checkbox("CheckBox", &stuff);
+    ImGui::End();
+}
+
+
 

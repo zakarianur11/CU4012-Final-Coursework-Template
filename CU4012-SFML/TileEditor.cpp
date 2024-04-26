@@ -49,8 +49,6 @@ TileEditor::TileEditor(sf::RenderWindow* hwnd, Input* in, GameState* game, sf::V
 
 	originalViewSize = v->getSize(); // Store the original size of the view
 
-	imguiWidth = SCREEN_WIDTH/4;
-	imguiHeight = SCREEN_HEIGHT;
 }
 
 TileEditor::~TileEditor()
@@ -85,7 +83,6 @@ void TileEditor::update(float dt)
 	tileManager->handleInput(dt);
 	tileManager->update(dt);
 	moveView(dt);
-
 	window->setView(hudView);
 	// Recalculate the viewSize considering the new zoom level
 	sf::Vector2f newViewSize = window->mapPixelToCoords(sf::Vector2i(window->getSize()), hudView) - window->mapPixelToCoords(sf::Vector2i(0, 0), hudView);
@@ -96,48 +93,17 @@ void TileEditor::update(float dt)
 
 void TileEditor::render()
 {
-	beginDraw();
 	if(isDragging) window->draw(mouseCurosorGrab);
 	window->setView(*view);
 	tileManager->render(true);
 
-	DrawImGui();
+	tileManager->DrawImGui();
 
 	//ALL the HUD should be drawn after this line
 	window->setView(hudView);
 	window->draw(TileEditorText);
 }
 
-void TileEditor::beginDraw()
-{
-	window->clear(sf::Color(100, 149, 237));
-}
-void TileEditor::DrawImGui()
-{
-
-	ImVec2 imguiSize(imguiWidth, imguiHeight);
-	ImVec2 imguiPos(SCREEN_WIDTH - imguiWidth, 0); // Positioned on the right-hand side
-
-	// Set the window size
-	ImGui::SetNextWindowSize(imguiSize);
-
-	// Set the window position
-	ImGui::SetNextWindowPos(imguiPos);
-
-	// Window flags
-	ImGuiWindowFlags window_flags = 0;
-	window_flags |= ImGuiWindowFlags_NoMove;          // The window will not be movable
-	window_flags |= ImGuiWindowFlags_NoResize;        // Disable resizing
-	window_flags |= ImGuiWindowFlags_NoCollapse;      // Disable collapsing
-	//window_flags |= ImGuiWindowFlags_NoTitleBar;      // Disable the title bar
-	//window_flags |= ImGuiWindowFlags_NoScrollbar;     // Disable the scrollbar
-
-	ImGui::Begin("Tile Editor", nullptr, window_flags);
-	ImGui::Text("Window Text!");
-	ImGui::Checkbox("CheckBox", &stuff);
-	ImGui::End();
-
-}
 void TileEditor::moveView(float dt)
 {
 

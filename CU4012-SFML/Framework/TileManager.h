@@ -28,6 +28,11 @@ class TileManager :
 
     bool showDebugCollisionBox;
 
+    //ImGui variables
+    bool stuff;
+    float imguiWidth;
+    float imguiHeight;
+
 public:
     TileManager();
 
@@ -54,4 +59,6 @@ public:
     void RemoveCollectable();
 
     void ShowDebugCollisionBox(bool b) { showDebugCollisionBox = b; }
+
+    void DrawImGui();
 };
