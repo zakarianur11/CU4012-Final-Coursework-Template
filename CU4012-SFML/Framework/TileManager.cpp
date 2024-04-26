@@ -337,11 +337,15 @@ void TileManager::DrawImGui() {
                 }
 
                 // Display properties if tiles have the same tag or only one is selected
-                if (!selectedTileIndices.empty() && (selectedTileIndices.size() == 1 || allTilesHaveSameTag())) {
-                    auto& firstTile = *tiles[*selectedTileIndices.begin()];
-
+                if (!selectedTileIndices.empty()) {
                     ImGui::Text("Selected Tiles: %d", (int)selectedTileIndices.size());
-                    if (selectedTileIndices.size() == 1 || allTilesHaveSameTag()) { 
+
+                    // Always allow editing position for any selected tiles
+                    displayTilePositions();
+
+                    // Only display and allow editing other properties if all selected tiles have the same tag
+                    if (selectedTileIndices.size() == 1 || allTilesHaveSameTag()) {
+                        auto& firstTile = *tiles[*selectedTileIndices.begin()];
                         displayTileProperties(firstTile);
                     }
                 }
@@ -372,7 +376,71 @@ void TileManager::DrawImGui() {
     }
 }
 
+void TileManager::displayTilePositions() {
+    if (selectedTileIndices.empty()) return;
+
+    // Compute an average position to start with for simplicity
+    sf::Vector2f averagePos(0, 0);
+    for (auto idx : selectedTileIndices) {
+        averagePos += tiles[idx]->getPosition();
+    }
+    averagePos.x /= selectedTileIndices.size();
+    averagePos.y /= selectedTileIndices.size();
+
+    sf::Vector2f newPos = averagePos;
+    if (ImGui::DragFloat2("Position", &newPos.x, 0.5f, 0, 0, "%.3f")) {
+        sf::Vector2f deltaPos = newPos - averagePos;
+        for (int idx : selectedTileIndices) {
+            sf::Vector2f currentPos = tiles[idx]->getPosition();
+            tiles[idx]->setPosition(currentPos + deltaPos);
+        }
+    }
+}
+
+void TileManager::displayTileProperties(Tiles& tile) 
+{
+
+    if (selectedTileIndices.empty()) return;
+
+    // Get the initial position of the first selected tile for reference
+    auto& firstTile = *tiles[*selectedTileIndices.begin()];
+    sf::Vector2f initialPos = firstTile.getPosition();
+    sf::Vector2f pos = initialPos;
+
+    if (ImGui::DragFloat2("Position", &pos.x, 0.5f, 0, 0, "%.3f")) {
+        sf::Vector2f deltaPos = { pos.x - initialPos.x, pos.y - initialPos.y };
+
+        // Apply this delta to all selected tiles
+        for (int idx : selectedTileIndices) {
+            auto& tile = *tiles[idx];
+            sf::Vector2f tilePos = tile.getPosition();
+            tile.setPosition({ tilePos.x + deltaPos.x, tilePos.y + deltaPos.y });
+        }
+    }
+
+    // Display and modify other properties only if all selected tiles share the same tag
+    if (allTilesHaveSameTag()) {
+        char buffer[256];
+        strcpy_s(buffer, firstTile.getTag().c_str());
+        if (ImGui::InputText("Tag", buffer, sizeof(buffer))) {
+            for (int idx : selectedTileIndices) {
+                tiles[idx]->setTag(std::string(buffer));
+            }
+        }
+        bool istrigger = firstTile.getTrigger();
+        bool isstatic = firstTile.getStatic();
+        bool ismassless = firstTile.getMassless();
+        bool istile = firstTile.getTile();
+
+        displayCheckBox("Trigger", istrigger);
+        displayCheckBox("Static", isstatic);
+        displayCheckBox("Massless", ismassless);
+        displayCheckBox("Tile", istile);
+    }
+}
+
 bool TileManager::allTilesHaveSameTag() {
+    if (selectedTileIndices.size() < 2) return true;
     std::string firstTag = tiles[*selectedTileIndices.begin()]->getTag();
     for (auto idx : selectedTileIndices) {
         if (tiles[idx]->getTag() != firstTag) return false;
@@ -380,61 +448,18 @@ bool TileManager::allTilesHaveSameTag() {
     return true;
 }
 
-void TileManager::displayTileProperties(Tiles& tile) {
-
-    if (ImGui::Button("Collectable##CollectableButton")) {
-        tile.setTexture(&collectableTexture);
-        tile.setTrigger(true);
-        tile.setStatic(false);
-        tile.setMassless(true);
-        tile.setTag("Collectable");
-    }
-    // Assuming Tile properties like position, size, tag are standard across all selected tiles if they have the same tag
-    sf::Vector2f pos = tile.getPosition();
-    if (ImGui::DragFloat2("Position", &pos.x)) {
-        for (int idx : selectedTileIndices) {
-            tiles[idx]->setPosition(pos);
-        }
-    }
-
-    sf::Vector2f size = tile.getSize();
-    if (ImGui::DragFloat2("Size", &size.x)) {
-        for (int idx : selectedTileIndices) {
-            tiles[idx]->setSize(size);
-        }
-    }
-
-    // Tag, Trigger, Static, Massless, Tile settings
-    char buffer[256];
-    strcpy_s(buffer, tile.getTag().c_str());
-    if (ImGui::InputText("Tag", buffer, sizeof(buffer))) {
-        for (int idx : selectedTileIndices) {
-            tiles[idx]->setTag(std::string(buffer));
-        }
-    }
-    bool isTrigger = tile.getTrigger();
-    bool isStatic = tile.getStatic();
-    bool isMassless = tile.getMassless();
-    bool isTile = tile.getTile();
-
-
-    displayCheckBox("Trigger", isTrigger);
-    displayCheckBox("Static", isStatic);
-    displayCheckBox("Massless", isMassless);
-    displayCheckBox("Tile", isTile);
-}
-
 void TileManager::displayCheckBox(const char* label, bool& value) {
-    if (ImGui::Checkbox(label, &value)) {
+    bool currentValue = value;
+    if (ImGui::Checkbox(label, &currentValue)) {
         for (int idx : selectedTileIndices) {
-            // Assuming these methods exist and are appropriately set
-            if (label == std::string("Trigger")) tiles[idx]->setTrigger(value);
-            if (label == std::string("Static")) tiles[idx]->setStatic(value);
-            if (label == std::string("Massless")) tiles[idx]->setMassless(value);
-            if (label == std::string("Tile")) tiles[idx]->setTile(value);
+            if (label == std::string("Trigger")) tiles[idx]->setTrigger(currentValue);
+            if (label == std::string("Static")) tiles[idx]->setStatic(currentValue);
+            if (label == std::string("Massless")) tiles[idx]->setMassless(currentValue);
+            if (label == std::string("Tile")) tiles[idx]->setTile(currentValue);
         }
     }
 }
+
 
 void TileManager::addNewTile() {
     auto newTile = std::make_unique<Tiles>();

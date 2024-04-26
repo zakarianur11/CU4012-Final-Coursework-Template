@@ -64,6 +64,8 @@ public:
 
     void DrawImGui();
 
+    void displayTilePositions();
+
     bool isInputTextActive() { return inputTextActive; }
 
     bool allTilesHaveSameTag();
