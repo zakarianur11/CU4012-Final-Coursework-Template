@@ -6,11 +6,12 @@
 #include <vector>
 #include <string>
 #include <sstream> // This is required for std::stringstream
+#include <set>     // For selecting multiple tiles
 
-
-class TileManager :
-    public GameObject
+class TileManager : public GameObject
 {
+    std::set<int> selectedTileIndices; // Set to keep track of selected tile indices
+
     int activeTileIndex = -1; // -1 indicates no tile is actively being edited
     bool tilesLoaded = false;
     //std::vector<Tiles> tiles;
@@ -32,6 +33,7 @@ class TileManager :
     bool stuff;
     float imguiWidth;
     float imguiHeight;
+    bool inputTextActive;
 
 public:
     TileManager();
@@ -61,4 +63,12 @@ public:
     void ShowDebugCollisionBox(bool b) { showDebugCollisionBox = b; }
 
     void DrawImGui();
+
+    bool isInputTextActive() { return inputTextActive; }
+
+    bool allTilesHaveSameTag();
+    void displayTileProperties(Tiles& tile);
+    void displayCheckBox(const char* label, bool& value);
+    void addNewTile();
+    void deleteSelectedTiles();
 };

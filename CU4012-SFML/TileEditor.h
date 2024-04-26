@@ -26,9 +26,7 @@ private:
 	GameState* gameState;
 	World* world;
 
-	sf::View hudView;
 	TileManager* tileManager;
-	sf::Text TileEditorText;
 	sf::Font font;
 	
 	sf::Vector2f originalViewSize;

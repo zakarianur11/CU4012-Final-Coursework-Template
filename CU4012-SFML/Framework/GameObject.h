@@ -68,6 +68,7 @@ public:
 	bool getStatic() { return isStatic; }
 
 	void setMassless(bool m) { isMassless = m; }
+	bool getMassless() { return isMassless; }
 	float getMass() const
 	{
 		return isStatic ? std::numeric_limits<float>::infinity() : mass;

@@ -15,11 +15,6 @@ TileEditor::TileEditor(sf::RenderWindow* hwnd, Input* in, GameState* game, sf::V
 		std::cout << "error loading font" << std::endl;
 	};
 
-	TileEditorText.setFont(font);
-	TileEditorText.setCharacterSize(20);
-	TileEditorText.setOutlineThickness(0.5);
-	TileEditorText.setFillColor(sf::Color::Black);
-
 	if (!mouseCurosorTex.loadFromFile("gfx/cursor-grabbed.png"))
 	{
 		std::cout << "Error loading cursor texture\n";
@@ -44,8 +39,6 @@ TileEditor::TileEditor(sf::RenderWindow* hwnd, Input* in, GameState* game, sf::V
 	{
 		std::cout << "Tiles loaded\n";
 	}
-
-	hudView = window->getDefaultView();
 
 	originalViewSize = v->getSize(); // Store the original size of the view
 
@@ -72,22 +65,9 @@ void TileEditor::handleInput(float dt)
 
 void TileEditor::update(float dt)
 {
-	sf::Vector2f viewSize = sf::Vector2f(window->getSize().x, window->getSize().y);
-
-	TileEditorText.setString(
-		"EDIT MODE\n"
-		"-Place: LMB\n-Move: Arrow Keys\n"
-		"-Scale: IJKL\n-Wall: B\n-Collectable: C\n"
-		"-Platform: P\n-Zoom: Q/E\n-Duplicate: Ctrl+D\n-Tab: Save and Exit\n"
-	);
 	tileManager->handleInput(dt);
 	tileManager->update(dt);
 	moveView(dt);
-	window->setView(hudView);
-	// Recalculate the viewSize considering the new zoom level
-	sf::Vector2f newViewSize = window->mapPixelToCoords(sf::Vector2i(window->getSize()), hudView) - window->mapPixelToCoords(sf::Vector2i(0, 0), hudView);
-	// Adjust the text position to be at the top left of the new viewSize
-	TileEditorText.setPosition(hudView.getCenter() - newViewSize * 0.5f);
 	window->setView(*view);
 }
 
@@ -99,9 +79,6 @@ void TileEditor::render()
 
 	tileManager->DrawImGui();
 
-	//ALL the HUD should be drawn after this line
-	window->setView(hudView);
-	window->draw(TileEditorText);
 }
 
 void TileEditor::moveView(float dt)
@@ -156,15 +133,17 @@ void TileEditor::moveView(float dt)
 		window->setMouseCursorVisible(true);
 	}
 
-	if (input->isKeyDown(sf::Keyboard::Q))
-	{
-		currentZoomLevel *= 1.0005f;
-		view->zoom(1.0005f);
-	}
-	if (input->isKeyDown(sf::Keyboard::E))
-	{
-		currentZoomLevel *= 0.9995f;
-		view->zoom(0.9995f);
+	if (!tileManager->isInputTextActive()) {
+		if (input->isKeyDown(sf::Keyboard::Q))
+		{
+			currentZoomLevel *= 1.0005f;
+			view->zoom(1.0005f);
+		}
+		if (input->isKeyDown(sf::Keyboard::E))
+		{
+			currentZoomLevel *= 0.9995f;
+			view->zoom(0.9995f);
+		}
 	}
 	
 	// Set the new view

@@ -52,53 +52,30 @@ void Tiles::handleInput(float dt)
 			setPosition(getPosition().x, getPosition().y + moveSpeed * dt);
 		}
 
-		float resizeSpeed = 0.1f; // Speed of resizing	
-		//Resize the tile
-		if (input->isKeyDown(sf::Keyboard::J))
-		{
-			setSize(sf::Vector2f(getSize().x - resizeSpeed, getSize().y));
-		}
+		//if (input->isKeyDown(sf::Keyboard::B))
+		//{
+		//	input->setKeyUp(sf::Keyboard::B);
+		//	setTag("Wall");
+		//	setTexture(&wallTexture);
+		//	std::cout << "Tile set as Wall\n";
+		//}
+		//if (input->isKeyDown(sf::Keyboard::C))
+		//{
+		//	input->setKeyUp(sf::Keyboard::C);
+		//	setTag("Collectable");
+		//	setTrigger(true);
+		//	setStatic(false);
+		//	setMassless(true);
+		//	setTexture(&collectableTexture);
+		//	std::cout << "Tile set as Collectable\n";
+		//}
 
-
-		if (input->isKeyDown(sf::Keyboard::L))
-		{
-			setSize(sf::Vector2f(getSize().x + resizeSpeed, getSize().y));
-		}
-
-		if (input->isKeyDown(sf::Keyboard::I))
-		{
-			setSize(sf::Vector2f(getSize().x, getSize().y - resizeSpeed));
-		}
-
-		if (input->isKeyDown(sf::Keyboard::K))
-		{
-			setSize(sf::Vector2f(getSize().x, getSize().y + resizeSpeed));
-		}
-
-		if (input->isKeyDown(sf::Keyboard::B))
-		{
-			input->setKeyUp(sf::Keyboard::B);
-			setTag("Wall");
-			setTexture(&wallTexture);
-			std::cout << "Tile set as Wall\n";
-		}
-		if (input->isKeyDown(sf::Keyboard::C))
-		{
-			input->setKeyUp(sf::Keyboard::C);
-			setTag("Collectable");
-			setTrigger(true);
-			setStatic(false);
-			setMassless(true);
-			setTexture(&collectableTexture);
-			std::cout << "Tile set as Collectable\n";
-		}
-
-		if (input->isKeyDown(sf::Keyboard::P))
-		{
-			input->setKeyUp(sf::Keyboard::P);
-			setTag("Platform");
-			setTexture(&platformTexture);
-			std::cout << "Tile set as Platform\n";
-		}
+		//if (input->isKeyDown(sf::Keyboard::P))
+		//{
+		//	input->setKeyUp(sf::Keyboard::P);
+		//	setTag("Platform");
+		//	setTexture(&platformTexture);
+		//	std::cout << "Tile set as Platform\n";
+		//}
 	}
 }

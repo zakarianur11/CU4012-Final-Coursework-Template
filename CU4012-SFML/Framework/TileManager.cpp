@@ -32,119 +32,106 @@ void TileManager::handleInput(float dt)
         }
 
         if (tileClicked) {
-            // If we clicked on a tile while another one was being edited, stop editing the previous one
-            if (activeTileIndex != -1 && activeTileIndex != clickedTileIndex) {
-                tiles[activeTileIndex]->setEditing(false);
-            }
-            // Set the clicked tile as the new active tile
-            activeTileIndex = clickedTileIndex;
-            tiles[activeTileIndex]->setEditing(true);
-        }
-        else {
-            // If we clicked on empty space and no tile is currently selected, create a new tile
-            if (activeTileIndex == -1) {
-                auto newTile = std::make_unique<Tiles>();
-                newTile->setPosition(worldPos.x, worldPos.y);
-                world->AddGameObject(*newTile);
-                tiles.push_back(std::move(newTile));
-                activeTileIndex = tiles.size() - 1; // Select the newly added tile
-                tiles[activeTileIndex]->setEditing(true);
+            if (input->isKeyDown(sf::Keyboard::LControl) || input->isKeyDown(sf::Keyboard::RControl)) {
+                // Ctrl is held, toggle the selection state of the tile
+                if (selectedTileIndices.find(clickedTileIndex) == selectedTileIndices.end()) {
+                    selectedTileIndices.insert(clickedTileIndex); // Add to selection
+                    tiles[clickedTileIndex]->setEditing(true);
+                }
+                else {
+                    selectedTileIndices.erase(clickedTileIndex); // Remove from selection
+                    tiles[clickedTileIndex]->setEditing(false);
+                }
             }
             else {
-                // If we clicked on empty space, stop editing the current tile
-                tiles[activeTileIndex]->setEditing(false);
-                activeTileIndex = -1;
+                // No Ctrl key, clear existing selections and select the new tile only
+                for (auto index : selectedTileIndices) {
+                    tiles[index]->setEditing(false); // Set all currently selected tiles to not editing
+                }
+                selectedTileIndices.clear();
+                selectedTileIndices.insert(clickedTileIndex);
+                tiles[clickedTileIndex]->setEditing(true);
+            }
+        }
+        else {
+            // Clicked on empty space, clear selection if Ctrl is not held
+            if (!(input->isKeyDown(sf::Keyboard::LControl) || input->isKeyDown(sf::Keyboard::RControl))) {
+                for (auto index : selectedTileIndices) {
+                    tiles[index]->setEditing(false); // Set all currently selected tiles to not editing
+                }
+                selectedTileIndices.clear();
             }
         }
         input->setLeftMouse(Input::MouseState::UP); // Mark the mouse click as handled
     }
 
-    // Handle input for the active tile
-    if (activeTileIndex != -1) {
-        tiles[activeTileIndex]->setInput(input);
-        tiles[activeTileIndex]->handleInput(dt);
-        // Similar for "Platform"
-
-        // If editing is finished (the tile itself should be responsible for setting this)
-        if (!tiles[activeTileIndex]->isEditing()) {
-            activeTileIndex = -1;
-        }
+    // Handle input for the active tiles
+    for (int index : selectedTileIndices) {
+        tiles[index]->setInput(input);
+        tiles[index]->handleInput(dt);
     }
 
     // Update the color of the tiles based on selection and tag
     for (int i = 0; i < tiles.size(); ++i) {
-        // Check if the tile is the active one and is in editing mode
-        if (i == activeTileIndex && tiles[i]->isEditing()) {
-            tiles[i]->setColor(sf::Color::Green);
+        if (selectedTileIndices.find(i) != selectedTileIndices.end()) {
+            tiles[i]->setColor(sf::Color::Green); // Highlight selected tiles
         }
-        // Check if the tile's tag is "Walls"
         else if (tiles[i]->getTag() == "Wall") {
             tiles[i]->setColor(sf::Color::Blue);
         }
-        // Default color
         else {
             tiles[i]->setColor(sf::Color::Red);
         }
     }
-    // Duplicate the selected tile
-    if (input->isKeyDown(sf::Keyboard::LControl) || input->isKeyDown(sf::Keyboard::RControl))
-    {
-        if (input->isKeyDown(sf::Keyboard::D))
-        {
-            // Ensure we have an active tile to duplicate
-            if (activeTileIndex != -1 && tiles.size() > activeTileIndex)
-            {
-                // Get the properties of the current tile
-                sf::Vector2f position = tiles[activeTileIndex]->getPosition();
-                sf::Vector2f size = tiles[activeTileIndex]->getSize();
-                std::string tag = tiles[activeTileIndex]->getTag();
 
-                // Create the new tile
+    // Additional functionality like duplication and deletion...
+
+    // Duplication
+    if (input->isKeyDown(sf::Keyboard::LControl) || input->isKeyDown(sf::Keyboard::RControl)) {
+        if (input->isKeyDown(sf::Keyboard::D)) {
+            // Duplicate all selected tiles
+            std::vector<std::unique_ptr<Tiles>> newTiles; // Temporarily store new tiles to avoid modifying the collection while iterating
+            for (int index : selectedTileIndices) {
+                auto& tile = tiles[index];
                 auto duplicatedTile = std::make_unique<Tiles>();
-                duplicatedTile->setPosition(position);
-                duplicatedTile->setSize(size);
-                duplicatedTile->setTag(tag);
+                duplicatedTile->setPosition(tile->getPosition());
+                duplicatedTile->setSize(tile->getSize());
+                duplicatedTile->setTag(tile->getTag());
+                duplicatedTile->setTexture(tile->getTexture()); // Ensure this method exists and works correctly
+                duplicatedTile->setTrigger(tile->getTrigger());
+                duplicatedTile->setStatic(tile->getStatic());
+                duplicatedTile->setMassless(tile->getMassless());
+                newTiles.push_back(std::move(duplicatedTile));
+            }
 
-                // Depending on the tag, set the texture
-                if (tag == "Collectable")
-                {
-                    duplicatedTile->setTexture(&collectableTexture);
-                    duplicatedTile->setTrigger(true);
-                    duplicatedTile->setStatic(false);
-                    duplicatedTile->setMassless(true);
-                }
-                else if (tag == "Platform")
-                {
-                    duplicatedTile->setTexture(&platformTexture);
-                }
-                else if (tag == "Wall")
-                {
-                    duplicatedTile->setTexture(&wallTexture);
-                }
+            // Add new tiles to the main collection and select them
+            for (auto& newTile : newTiles) {
+                world->AddGameObject(*newTile);
+                int newIndex = tiles.size();
+                tiles.push_back(std::move(newTile));
+                selectedTileIndices.insert(newIndex); // Select new tiles
+            }
 
-                // Add the new tile to the world and select it
-                world->AddGameObject(*duplicatedTile);
-                tiles.push_back(std::move(duplicatedTile));
-                activeTileIndex = tiles.size() - 1; // Select the newly added tile
-                tiles[activeTileIndex]->setEditing(true);
+            input->setKeyUp(sf::Keyboard::D); // Prevent continuous duplication while the key is held down
+        }
+    }
 
-                // Prevent continuous duplication while the key is held down
-                input->setKeyUp(sf::Keyboard::D);
+    //Deletion
+    if (input->isKeyDown(sf::Keyboard::Delete)) {
+        // Sort selected indices in descending order to safely delete multiple tiles without invalidating indices
+        std::vector<int> sortedIndices(selectedTileIndices.begin(), selectedTileIndices.end());
+        std::sort(sortedIndices.rbegin(), sortedIndices.rend()); // Reverse sort
+
+        for (int index : sortedIndices) {
+            if (index >= 0 && index < tiles.size()) {
+                world->RemoveGameObject(*tiles[index]);
+                tiles.erase(tiles.begin() + index);
             }
         }
-    }
-
-    // Delete the selected tile
-    if (input->isKeyDown(sf::Keyboard::Delete)) {
-        input->setKeyUp(sf::Keyboard::Delete);
-        if (activeTileIndex != -1) {
-            world->RemoveGameObject(*tiles[activeTileIndex]);
-            tiles.erase(tiles.begin() + activeTileIndex);
-            activeTileIndex = -1;
-        }
+        selectedTileIndices.clear(); // Clear selection after deletion
+        input->setKeyUp(sf::Keyboard::Delete); // Prevent continuous deletion while the key is held down
     }
 }
-
 void TileManager::update(float dt)
 {
     for (auto& tilePtr : tiles) {
@@ -154,46 +141,24 @@ void TileManager::update(float dt)
     }
 }
 
-
-void TileManager::render(bool editMode)
-{
-
+void TileManager::render(bool editMode) {
     for (auto& tilePtr : tiles) {
         if (tilePtr) { // Check if the pointer is not null
-            if (editMode)
-            {
+            if (editMode) {
                 sf::RectangleShape rect = tilePtr->getDebugCollisionBox();
                 rect.setOutlineThickness(5);
-                window->draw(rect);
+                int tileIndex = &tilePtr - &tiles[0]; // Get index of the tile
 
-                if (tilePtr->getTag() == "Collectable")
-                {
-                    window->draw(*tilePtr); // Dereference the pointer to get the Tiles object
+                // Highlight selected tiles
+                if (selectedTileIndices.find(tileIndex) != selectedTileIndices.end()) {
+                    rect.setOutlineColor(sf::Color::Green);
+                } else {
+                    rect.setOutlineColor(sf::Color::Red);
                 }
-                if (tilePtr->getTag() == "Platform")
-                {
-                    window->draw(*tilePtr); // Dereference the pointer to get the Tiles object
-                }
-                if (tilePtr->getTag() == "Wall")
-                {
-                    window->draw(*tilePtr);
-                }
+                
+                window->draw(rect);
             }
-            else
-            {
-                if (tilePtr->getTag() == "Collectable")
-                {
-                    window->draw(*tilePtr); // Dereference the pointer to get the Tiles object
-                }
-                if (tilePtr->getTag() == "Platform")
-                {
-                    window->draw(*tilePtr); // Dereference the pointer to get the Tiles object
-                }
-                if (tilePtr->getTag() == "Wall")
-                {
-					window->draw(*tilePtr);
-				}
-            }
+            window->draw(*tilePtr); // Draw the tile
         }
     }
 }
@@ -202,6 +167,7 @@ void TileManager::render(bool editMode)
 
 void TileManager::saveTiles(const std::vector<std::unique_ptr<Tiles>>& tiles, const std::string& filePath)
 {
+    std::cout << "Saving tiles to file: " << filePath << std::endl;
     std::ofstream file(filePath);
     for (const auto& tile : tiles) {
         file << tile->getTag() << ","
@@ -312,8 +278,7 @@ void TileManager::RemoveCollectable()
     tiles.erase(newEnd, tiles.end());
 }
 
-void TileManager::DrawImGui()
-{
+void TileManager::DrawImGui() {
     ImVec2 imguiSize(imguiWidth, imguiHeight);
     ImVec2 imguiPos(SCREEN_WIDTH - imguiWidth, 0); // Positioned on the right-hand side
 
@@ -331,95 +296,165 @@ void TileManager::DrawImGui()
     //window_flags |= ImGuiWindowFlags_NoTitleBar;      // Disable the title bar
     //window_flags |= ImGuiWindowFlags_NoScrollbar;     // Disable the scrollbar
 
-
-    // Use static variables to store the range, adjust as necessary
-    static float maxPosition = 800.0f;
-    static float maxSize = 200.0f;
-
-
-    ImGui::Begin("Tile Editor", nullptr, window_flags);
-    if (ImGui::CollapsingHeader("Help"))
+    if (ImGui::Begin("Tile Editor", nullptr, window_flags)) 
     {
-		ImGui::Text("Left Click: Place Tile");
-		ImGui::Text("Delete: Delete Tile");
-		ImGui::Text("Ctrl+D: Duplicate Tile");
-		ImGui::Text("Tab: Save and Exit");
-    }
-    if (ImGui::BeginTabBar("Tile Editor Tabs")) {
-        if (ImGui::BeginTabItem("Tiles")) {
-            static int selectedTileIndex = -1;
-
-            // Tiles List
-            if (ImGui::BeginListBox("Tile List")) {
-                for (int i = 0; i < tiles.size(); i++) {
-                    std::string item_label = tiles[i]->getTag() + "##" + std::to_string(i);
-                    bool isSelected = (selectedTileIndex == i);
-                    if (ImGui::Selectable(item_label.c_str(), isSelected)) {
-                        selectedTileIndex = i;
-                    }
-                    if (isSelected) {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-                ImGui::EndListBox();
-            }
-            // Properties of the selected tile
-            if (selectedTileIndex != -1 && selectedTileIndex < tiles.size()) {
-                auto& selectedTile = tiles[selectedTileIndex];
-
-                // Handle position dragging
-                sf::Vector2f pos = selectedTile->getPosition();
-                ImGui::DragFloat2("Position##PosDrag", &pos.x, 0.5f, 0, 0, "%.3f");
-                //if (ImGui::IsItemActive()) 
-                //{
-                //}
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("Click and drag to adjust value, or double click and type to enter directly.");
-                }
-                selectedTile->setPosition(pos);
-
-                // Handle size dragging
-                sf::Vector2f size = selectedTile->getSize();
-                ImGui::DragFloat2("Size##SizeDrag", &size.x, 0.1f, 0, 0, "%.3f");
-                //if (ImGui::IsItemActive()) {
-                //}
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("Click and drag to adjust value, or double click and type to enter directly.");
-                }
-                selectedTile->setSize(size);
-            }
-
-            if (ImGui::Button("Add New Tile##AddTile")) {
-                // Logic to add a new tile
-            }
-            ImGui::SameLine();
-            // Delete the selected tile
-            if (ImGui::Button("Delete Tile##DeleteTile") && selectedTileIndex != -1) {
-                if (selectedTileIndex >= 0 && selectedTileIndex < tiles.size()) {
-                    world->RemoveGameObject(*tiles[selectedTileIndex]); // Make sure this does not cause the error
-
-                    // After removing the tile from the game world, erase it from the vector
-                    tiles.erase(tiles.begin() + selectedTileIndex);
-
-                    // Reset selected index to prevent accessing a non-existent vector element
-                    selectedTileIndex = -1;  // Reset selection
-                }
-            }
-
-            ImGui::EndTabItem();
+        if (ImGui::CollapsingHeader("Help"))
+        {
+            ImGui::Text("Left Click: Place Tile");
+            ImGui::Text("Right Click and Drag: Move Camera");
+            ImGui::Text("Delete: Delete Tile");
+            ImGui::Text("Ctrl+D: Duplicate Tile");
+            ImGui::Text("Tab: Save and Exit");
         }
 
-        if (ImGui::BeginTabItem("Settings")) {
-            // Global settings for tiles can be placed here
-            ImGui::Text("General settings for the tile editor.");
-            ImGui::EndTabItem();
+        if (ImGui::BeginTabBar("Tile Editor Tabs")) {
+            if (ImGui::BeginTabItem("Tiles")) {
+                // Tiles List
+                if (ImGui::BeginListBox("Tile List")) {
+                    for (int i = 0; i < tiles.size(); i++) {
+                        std::string item_label = tiles[i]->getTag().empty() ? "Tile" + std::to_string(i) : tiles[i]->getTag();
+                        item_label += "##" + std::to_string(i);
+
+                        bool isSelected = selectedTileIndices.find(i) != selectedTileIndices.end();
+                        if (ImGui::Selectable(item_label.c_str(), isSelected)) {
+                            if (ImGui::GetIO().KeyCtrl) {
+                                // Toggle selection with Ctrl pressed
+                                if (isSelected) {
+                                    selectedTileIndices.erase(i);
+                                }
+                                else {
+                                    selectedTileIndices.insert(i);
+                                }
+                            }
+                            else {
+                                // Single selection
+                                selectedTileIndices.clear();
+                                selectedTileIndices.insert(i);
+                            }
+                        }
+                    }
+                    ImGui::EndListBox();
+                }
+
+                // Display properties if tiles have the same tag or only one is selected
+                if (!selectedTileIndices.empty() && (selectedTileIndices.size() == 1 || allTilesHaveSameTag())) {
+                    auto& firstTile = *tiles[*selectedTileIndices.begin()];
+
+                    ImGui::Text("Selected Tiles: %d", (int)selectedTileIndices.size());
+                    if (selectedTileIndices.size() == 1 || allTilesHaveSameTag()) { 
+                        displayTileProperties(firstTile);
+                    }
+                }
+
+                if (ImGui::Button("Add New Tile")) {
+                    addNewTile();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Delete Selected Tiles")) {
+                    deleteSelectedTiles();
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Settings")) {
+                ImGui::Text("General settings for the tile editor.");
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
         }
 
-        ImGui::EndTabBar();
+        if (ImGui::Button("Save")) {
+            saveTiles(tiles, filePath);
+        }
+
+        ImGui::End();
     }
-    ImGui::Checkbox("CheckBox", &stuff);
-    ImGui::End();
 }
+
+bool TileManager::allTilesHaveSameTag() {
+    std::string firstTag = tiles[*selectedTileIndices.begin()]->getTag();
+    for (auto idx : selectedTileIndices) {
+        if (tiles[idx]->getTag() != firstTag) return false;
+    }
+    return true;
+}
+
+void TileManager::displayTileProperties(Tiles& tile) {
+
+    if (ImGui::Button("Collectable##CollectableButton")) {
+        tile.setTexture(&collectableTexture);
+        tile.setTrigger(true);
+        tile.setStatic(false);
+        tile.setMassless(true);
+        tile.setTag("Collectable");
+    }
+    // Assuming Tile properties like position, size, tag are standard across all selected tiles if they have the same tag
+    sf::Vector2f pos = tile.getPosition();
+    if (ImGui::DragFloat2("Position", &pos.x)) {
+        for (int idx : selectedTileIndices) {
+            tiles[idx]->setPosition(pos);
+        }
+    }
+
+    sf::Vector2f size = tile.getSize();
+    if (ImGui::DragFloat2("Size", &size.x)) {
+        for (int idx : selectedTileIndices) {
+            tiles[idx]->setSize(size);
+        }
+    }
+
+    // Tag, Trigger, Static, Massless, Tile settings
+    char buffer[256];
+    strcpy_s(buffer, tile.getTag().c_str());
+    if (ImGui::InputText("Tag", buffer, sizeof(buffer))) {
+        for (int idx : selectedTileIndices) {
+            tiles[idx]->setTag(std::string(buffer));
+        }
+    }
+    bool isTrigger = tile.getTrigger();
+    bool isStatic = tile.getStatic();
+    bool isMassless = tile.getMassless();
+    bool isTile = tile.getTile();
+
+
+    displayCheckBox("Trigger", isTrigger);
+    displayCheckBox("Static", isStatic);
+    displayCheckBox("Massless", isMassless);
+    displayCheckBox("Tile", isTile);
+}
+
+void TileManager::displayCheckBox(const char* label, bool& value) {
+    if (ImGui::Checkbox(label, &value)) {
+        for (int idx : selectedTileIndices) {
+            // Assuming these methods exist and are appropriately set
+            if (label == std::string("Trigger")) tiles[idx]->setTrigger(value);
+            if (label == std::string("Static")) tiles[idx]->setStatic(value);
+            if (label == std::string("Massless")) tiles[idx]->setMassless(value);
+            if (label == std::string("Tile")) tiles[idx]->setTile(value);
+        }
+    }
+}
+
+void TileManager::addNewTile() {
+    auto newTile = std::make_unique<Tiles>();
+    newTile->setPosition(0, 0);  // Default position
+    world->AddGameObject(*newTile);
+    tiles.push_back(std::move(newTile));
+    selectedTileIndices.clear();
+    selectedTileIndices.insert(tiles.size() - 1);
+}
+
+void TileManager::deleteSelectedTiles() {
+    std::vector<int> sortedIndices(selectedTileIndices.begin(), selectedTileIndices.end());
+    std::sort(sortedIndices.rbegin(), sortedIndices.rend());
+    for (int idx : sortedIndices) {
+        world->RemoveGameObject(*tiles[idx]);
+        tiles.erase(tiles.begin() + idx);
+    }
+    selectedTileIndices.clear();
+}
+
 
 
 
