@@ -167,6 +167,7 @@
     <ClInclude Include="Framework\Input.h" />
     <ClInclude Include="Framework\MusicObject.h" />
     <ClInclude Include="Framework\SoundObject.h" />
+    <ClInclude Include="Framework\TextureManager.h" />
     <ClInclude Include="Framework\TileManager.h" />
     <ClInclude Include="Framework\TileMap.h" />
     <ClInclude Include="Framework\Tiles.h" />

@@ -173,6 +173,9 @@
     <ClInclude Include="Framework\Utilities.h">
       <Filter>Framework</Filter>
     </ClInclude>
+    <ClInclude Include="Framework\TextureManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Framework\DO_NOT_EDIT.txt">

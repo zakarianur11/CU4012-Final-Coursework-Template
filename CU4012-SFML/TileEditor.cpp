@@ -22,9 +22,6 @@ TileEditor::TileEditor(sf::RenderWindow* hwnd, Input* in, GameState* game, sf::V
 	mouseCurosorGrab.setTexture(mouseCurosorTex);
 
 	// Set up tile manager
-	tileManager->setCollectableTexture("gfx/Collectable.png");
-	tileManager->setPlatformTexture("gfx/Platform.png");
-	tileManager->setWallTexture("gfx/Wall.png");
 	tileManager->setInput(input);
 	tileManager->setWindow(window);
 	tileManager->setWorld(world);

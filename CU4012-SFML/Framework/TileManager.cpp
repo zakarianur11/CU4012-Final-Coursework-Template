@@ -7,7 +7,7 @@
 TileManager::TileManager()
 {
     filePath = "TilesData.txt";
-
+    textureManager.loadTexturesFromDirectory("gfx/TileTextures");
     // Set up ImGui variables
     imguiWidth = SCREEN_WIDTH / 4;
     imguiHeight = SCREEN_HEIGHT;
@@ -54,12 +54,36 @@ void TileManager::handleInput(float dt)
             }
         }
         else {
-            // Clicked on empty space, clear selection if Ctrl is not held
+            // Clicked on empty space
             if (!(input->isKeyDown(sf::Keyboard::LControl) || input->isKeyDown(sf::Keyboard::RControl))) {
+                if (!selectedTileIndices.empty()) {
+                    // Clear all current selections
+                    for (auto index : selectedTileIndices) {
+                        tiles[index]->setEditing(false); // Set all currently selected tiles to not editing
+                    }
+                    selectedTileIndices.clear();
+                    // Set a flag or remember this state to know a clearing has just occurred
+                    //recentlyCleared = true;
+                }
+                else {
+                    // Create a new tile only if it was recently cleared and now clicking again on empty space
+                    auto newTile = std::make_unique<Tiles>();
+                    newTile->setPosition(worldPos.x, worldPos.y);
+                    world->AddGameObject(*newTile);
+                    tiles.push_back(std::move(newTile));
+                    int newIndex = tiles.size() - 1; // Get the index of the newly added tile
+                    selectedTileIndices.insert(newIndex); // Select the newly added tile
+                    tiles[newIndex]->setEditing(true);
+                    recentlyCleared = false; // Reset the flag
+                }
+            }
+            else {
+                // If Ctrl is held, only clear selection without adding a new tile
                 for (auto index : selectedTileIndices) {
                     tiles[index]->setEditing(false); // Set all currently selected tiles to not editing
                 }
                 selectedTileIndices.clear();
+                //recentlyCleared = false; // Ensure the flag is reset even if Ctrl was held
             }
         }
         input->setLeftMouse(Input::MouseState::UP); // Mark the mouse click as handled
@@ -158,108 +182,100 @@ void TileManager::render(bool editMode) {
                 
                 window->draw(rect);
             }
-            window->draw(*tilePtr); // Draw the tile
+            if(!tilePtr->getTexture()==NULL) window->draw(*tilePtr); // Draw the tile
         }
     }
 }
 
 
-
+//
+//void TileManager::saveTiles(const std::vector<std::unique_ptr<Tiles>>& tiles, const std::string& filePath)
+//{
+//    std::cout << "Saving tiles to file: " << filePath << std::endl;
+//    std::ofstream file(filePath);
+//    for (const auto& tile : tiles) {
+//        file << tile->getTag() << ","
+//
+//            << tile->getPosition().x << ","
+//            << tile->getPosition().y << ","
+//            << tile->getSize().x << ","
+//            << tile->getSize().y << ","
+//            <<tile->getTrigger() << ","
+//            << tile->getStatic() << ","
+//            << tile->getMassless() << ","
+//            << tile->getTile() << ",""\n";
+//    }
+//}
 void TileManager::saveTiles(const std::vector<std::unique_ptr<Tiles>>& tiles, const std::string& filePath)
 {
-    std::cout << "Saving tiles to file: " << filePath << std::endl;
     std::ofstream file(filePath);
+    if (!file.is_open()) {
+        std::cout << "Failed to open file for saving tiles." << std::endl;
+        return;
+    }
+
     for (const auto& tile : tiles) {
         file << tile->getTag() << ","
             << tile->getPosition().x << ","
             << tile->getPosition().y << ","
             << tile->getSize().x << ","
-            << tile->getSize().y << "\n";
+            << tile->getSize().y << ","
+            << tile->getTrigger() << ","
+            << tile->getStatic() << ","
+            << tile->getMassless() << ","
+            << tile->getTile() << ","
+            << tile->getTextureName() << "\n";  // Ensure the texture name is always written, even if it's empty
     }
 }
 
 bool TileManager::loadTiles()
 {
-    if (tiles.empty())
-    {
-        std::ifstream file(filePath);
-
-        if (!file.is_open()) {
-            return false;
-        }
-        std::string line;
-
-        while (std::getline(file, line)) {
-            std::stringstream linestream(line);
-            std::string segment;
-            std::vector<std::string> seglist;
-
-            while (std::getline(linestream, segment, ',')) {
-                //std::cout << segment << std::endl;
-                seglist.push_back(segment);
-            }
-
-            if (seglist.size() >= 5) {
-                // Assuming segment order is type, posX, posY, sizeX, sizeY
-                auto newTile = std::make_unique<Tiles>();
-                //tile.setTag(std::stoi(seglist[0])); // Ensure this matches your type representation
-                newTile->setTag(seglist[0]);
-                newTile->setPosition(sf::Vector2f(std::stof(seglist[1]), std::stof(seglist[2])));
-                newTile->setSize(sf::Vector2f(std::stof(seglist[3]), std::stof(seglist[4])));
-                if (newTile->getTag() == "Collectable")
-                {
-                    newTile->setTexture(&collectableTexture);
-                    newTile->setTrigger(true);
-                    newTile->setStatic(false);
-                    newTile->setMassless(true);
-                }
-                if (newTile->getTag() == "Platform")
-                {
-					newTile->setTexture(&platformTexture);
-				}
-                if (newTile->getTag() == "Wall")
-                {
-                    setTexture(&wallTexture);
-                }
-                world->AddGameObject(*newTile);
-                tiles.push_back(std::move(newTile));
-                //std::cout<<"Tiles: "<<tiles.size()<<std::endl;  
-            }
-
-        }
-
-        return true;
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        std::cout << "Failed to open file for loading tiles." << std::endl;
+        return false;
     }
 
-    return false;
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream linestream(line);
+        std::string segment;
+        std::vector<std::string> seglist;
+
+        while (std::getline(linestream, segment, ',')) {
+            seglist.push_back(segment);
+        }
+
+        if (seglist.size() >= 9) {
+            auto newTile = std::make_unique<Tiles>();
+            newTile->setTag(seglist[0]);
+            newTile->setPosition(sf::Vector2f(std::stof(seglist[1]), std::stof(seglist[2])));
+            newTile->setSize(sf::Vector2f(std::stof(seglist[3]), std::stof(seglist[4])));
+            newTile->setTrigger(std::stoi(seglist[5]));
+            newTile->setStatic(std::stoi(seglist[6]));
+            newTile->setMassless(std::stoi(seglist[7]));
+            newTile->setTile(std::stoi(seglist[8]));
+
+            // Check if a texture name exists and is valid
+            if (seglist.size() > 9 && !seglist[9].empty()) {
+                newTile->setTextureName(seglist[9]);
+                sf::Texture* texture = textureManager.getTexture(seglist[9]);
+                if (texture) {
+                    newTile->setTexture(texture);
+                }
+            }
+
+            world->AddGameObject(*newTile);
+            tiles.push_back(std::move(newTile));
+        }
+    }
+
+    return true;
 }
+
 
 std::vector<std::unique_ptr<Tiles>>& TileManager::getTiles() {
     return tiles;
-}
-
-void TileManager::setCollectableTexture(std::string path)
-{
-    if (!collectableTexture.loadFromFile(path))
-    {
-        std::cout << "Tile Manager file not found\n";
-    }
-}
-
-void TileManager::setPlatformTexture(std::string path)
-{
-    if (!platformTexture.loadFromFile(path))
-    {
-        std::cout << "Tile Manager file not found\n";
-    }
-}
-
-void TileManager::setWallTexture(std::string path)
-{
-    if (!wallTexture.loadFromFile(path))
-    {
-		std::cout << "Tile Manager file not found\n";
-	}
 }
 
 void TileManager::RemoveCollectable()
@@ -307,6 +323,33 @@ void TileManager::DrawImGui() {
             ImGui::Text("Tab: Save and Exit");
         }
 
+        if (ImGui::CollapsingHeader("Best Checkbox Combinations"))
+        {
+            if (ImGui::CollapsingHeader("Checkpoint:"))
+            {
+                ImGui::Text("Should be set as a Trigger, Static, and Tile.");
+                if (ImGui::CollapsingHeader("Explanation:"))
+                    ImGui::Text("Checkpoints need to be interacted with but should not\nimpede player movement or be affected by physics.");
+            }
+
+
+            if (ImGui::CollapsingHeader("Coin:"))
+            {
+                ImGui::Text("Should be set as a Trigger, Massless, and Tile.");
+                if (ImGui::CollapsingHeader("Explanation:"))
+                    ImGui::Text("Coins should be collectable without affecting the physics\nof the player or game environment.");
+            }
+
+
+            if (ImGui::CollapsingHeader("Moving Platform:"))
+            {
+
+                ImGui::Text("Should not be a Trigger or Massless, but Static if not moving vertically.");
+                if (ImGui::CollapsingHeader("Explanation:"))
+                    ImGui::Text("Platforms that carry the player or objects should interact with \nphysics correctly and not trigger events.");
+            }
+        }
+
         if (ImGui::BeginTabBar("Tile Editor Tabs")) {
             if (ImGui::BeginTabItem("Tiles")) {
                 // Tiles List
@@ -336,20 +379,67 @@ void TileManager::DrawImGui() {
                     ImGui::EndListBox();
                 }
 
-                // Display properties if tiles have the same tag or only one is selected
                 if (!selectedTileIndices.empty()) {
+
+                    // Buttons for setting properties to common types
+                    if (ImGui::Button("Convert to Collectable")) {
+                        for (int idx : selectedTileIndices) {
+                            auto& tile = *tiles[idx];
+                            tile.setMassless(true);
+                            tile.setTrigger(true);
+                            tile.setTile(true);
+                            tile.setStatic(false);
+                            tile.setTag("Collectable");
+                        }
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Use these settings to convert the selected tile(s) to a Collectable.");
+                    }
+
+                    if (ImGui::Button("Convert to Platform")) {
+                        for (int idx : selectedTileIndices) {
+                            auto& tile = *tiles[idx];
+                            tile.setStatic(true);
+                            tile.setTile(true);
+                            tile.setTrigger(false);
+                            tile.setMassless(false);
+                            tile.setTag("Platform");
+                        }
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Use these settings to convert the selected tile(s) to a Platform.");
+                    }
+
+                    if (ImGui::Button("Convert to Checkpoint")) {
+                        for (int idx : selectedTileIndices) {
+                            auto& tile = *tiles[idx];
+                            tile.setStatic(true);
+                            tile.setTrigger(true);
+                            tile.setTile(true);
+                            tile.setMassless(false);
+                            tile.setTag("Checkpoint");
+                        }
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Use these settings to convert the selected tile(s) to a Checkpoint.");
+                    }
+
                     ImGui::Text("Selected Tiles: %d", (int)selectedTileIndices.size());
+                    displayTilePositions();  // Edit positions
+                    displayTileScales();     // Edit scales
 
-                    // Always allow editing position for any selected tiles
-                    displayTilePositions();
-
-                    // Only display and allow editing other properties if all selected tiles have the same tag
+                    // Display properties if tiles have the same tag or only one is selected
                     if (selectedTileIndices.size() == 1 || allTilesHaveSameTag()) {
                         auto& firstTile = *tiles[*selectedTileIndices.begin()];
                         displayTileProperties(firstTile);
                     }
-                }
 
+                    displayTextureSelection(textureManager);
+                }
+                
                 if (ImGui::Button("Add New Tile")) {
                     addNewTile();
                 }
@@ -358,30 +448,77 @@ void TileManager::DrawImGui() {
                     deleteSelectedTiles();
                 }
 
+
+                if (ImGui::Button("Save")) {
+                    saveTiles(tiles, filePath);
+                }
+
+
                 ImGui::EndTabItem();
+
+                
             }
 
-            if (ImGui::BeginTabItem("Settings")) {
-                ImGui::Text("General settings for the tile editor.");
+            if (ImGui::BeginTabItem("Tile Map")) {
+                ImGui::Text("Comming Soon........");
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
         }
 
-        if (ImGui::Button("Save")) {
-            saveTiles(tiles, filePath);
-        }
+        
 
         ImGui::End();
     }
 }
+
+
+void TileManager::displayTextureSelection(TextureManager& textureManager) {
+    if (selectedTileIndices.empty()) return;
+
+    // Assume first selected tile's texture as the default for simplicity
+    std::string currentTextureName = tiles[*selectedTileIndices.begin()]->getTextureName();
+    const std::vector<std::string>& textureNames = textureManager.getTextureNames();
+
+    // Find the current index based on the texture name
+    int current_item = 0; // Default to the first texture if not found
+    for (int i = 0; i < textureNames.size(); i++) {
+        if (textureNames[i] == currentTextureName) {
+            current_item = i;
+            break;
+        }
+    }
+
+    // Start the ImGui combo box
+    if (ImGui::BeginCombo("Texture", currentTextureName.c_str())) {
+        for (int n = 0; n < textureNames.size(); n++) {
+            bool is_selected = (current_item == n);
+            if (ImGui::Selectable(textureNames[n].c_str(), is_selected)) {
+                // Set the new current item
+                current_item = n;
+                // Update the texture on all selected tiles
+                sf::Texture* selectedTexture = textureManager.getTexture(textureNames[n]);
+                for (auto idx : selectedTileIndices) {
+                    tiles[idx]->setTexture(selectedTexture);
+                    tiles[idx]->setTextureName(textureNames[n]);  // Save the texture name
+                }
+            }
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();  // Automatically scroll to the selected item
+            }
+        }
+        ImGui::EndCombo();
+    }
+}
+
+
 
 void TileManager::displayTilePositions() {
     if (selectedTileIndices.empty()) return;
 
     // Compute an average position to start with for simplicity
     sf::Vector2f averagePos(0, 0);
-    for (auto idx : selectedTileIndices) {
+    for (int idx : selectedTileIndices) {
         averagePos += tiles[idx]->getPosition();
     }
     averagePos.x /= selectedTileIndices.size();
@@ -395,49 +532,75 @@ void TileManager::displayTilePositions() {
             tiles[idx]->setPosition(currentPos + deltaPos);
         }
     }
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip("Drag or double-click to edit.");
+    }
 }
+
+void TileManager::displayTileScales() {
+    if (selectedTileIndices.empty()) return;
+
+    // Compute an average scale to start with for simplicity
+    sf::Vector2f averageScale(0, 0);
+    for (int idx : selectedTileIndices) {
+        averageScale += tiles[idx]->getSize();
+    }
+    averageScale.x /= selectedTileIndices.size();
+    averageScale.y /= selectedTileIndices.size();
+
+    sf::Vector2f newScale = averageScale;
+    if (ImGui::DragFloat2("Scale", &newScale.x, 0.1f, 0.01f, 1000.0f, "%.3f")) {
+        sf::Vector2f deltaScale = newScale - averageScale;
+        for (int idx : selectedTileIndices) {
+            sf::Vector2f currentScale = tiles[idx]->getSize();
+            tiles[idx]->setSize(currentScale + deltaScale);
+        }
+    }
+    if (ImGui::IsItemHovered())
+    {
+		ImGui::SetTooltip("Drag or double-click to edit.");
+	}
+}
+
 
 void TileManager::displayTileProperties(Tiles& tile) 
 {
+    if (selectedTileIndices.empty() || !allTilesHaveSameTag()) return;
 
-    if (selectedTileIndices.empty()) return;
-
-    // Get the initial position of the first selected tile for reference
     auto& firstTile = *tiles[*selectedTileIndices.begin()];
-    sf::Vector2f initialPos = firstTile.getPosition();
-    sf::Vector2f pos = initialPos;
 
-    if (ImGui::DragFloat2("Position", &pos.x, 0.5f, 0, 0, "%.3f")) {
-        sf::Vector2f deltaPos = { pos.x - initialPos.x, pos.y - initialPos.y };
-
-        // Apply this delta to all selected tiles
+    char buffer[256];
+    strcpy_s(buffer, firstTile.getTag().c_str());
+    if (ImGui::InputText("Tag", buffer, sizeof(buffer))) {
         for (int idx : selectedTileIndices) {
-            auto& tile = *tiles[idx];
-            sf::Vector2f tilePos = tile.getPosition();
-            tile.setPosition({ tilePos.x + deltaPos.x, tilePos.y + deltaPos.y });
+            tiles[idx]->setTag(std::string(buffer));
         }
     }
-
-    // Display and modify other properties only if all selected tiles share the same tag
-    if (allTilesHaveSameTag()) {
-        char buffer[256];
-        strcpy_s(buffer, firstTile.getTag().c_str());
-        if (ImGui::InputText("Tag", buffer, sizeof(buffer))) {
-            for (int idx : selectedTileIndices) {
-                tiles[idx]->setTag(std::string(buffer));
-            }
-        }
-        bool istrigger = firstTile.getTrigger();
-        bool isstatic = firstTile.getStatic();
-        bool ismassless = firstTile.getMassless();
-        bool istile = firstTile.getTile();
-
-        displayCheckBox("Trigger", istrigger);
-        displayCheckBox("Static", isstatic);
-        displayCheckBox("Massless", ismassless);
-        displayCheckBox("Tile", istile);
+    if (ImGui::IsItemActive())
+    {
+        inputTextActive = true;
     }
+    else
+    {
+        inputTextActive = false;
+    }
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip("Enter Tag, this can be used during collision detection");
+    }
+
+    bool istrigger = firstTile.getTrigger();
+    bool isstatic = firstTile.getStatic();
+    bool ismassless = firstTile.getMassless();
+    bool istile = firstTile.getTile();
+
+    displayCheckBox("Trigger", istrigger);
+    displayCheckBox("Static", isstatic);
+    displayCheckBox("Massless", ismassless);
+    displayCheckBox("Tile", istile);
 }
+
 
 bool TileManager::allTilesHaveSameTag() {
     if (selectedTileIndices.size() < 2) return true;
@@ -452,14 +615,35 @@ void TileManager::displayCheckBox(const char* label, bool& value) {
     bool currentValue = value;
     if (ImGui::Checkbox(label, &currentValue)) {
         for (int idx : selectedTileIndices) {
-            if (label == std::string("Trigger")) tiles[idx]->setTrigger(currentValue);
-            if (label == std::string("Static")) tiles[idx]->setStatic(currentValue);
-            if (label == std::string("Massless")) tiles[idx]->setMassless(currentValue);
-            if (label == std::string("Tile")) tiles[idx]->setTile(currentValue);
+            if (strcmp(label, "Trigger") == 0) {
+                tiles[idx]->setTrigger(currentValue);
+            }
+            else if (strcmp(label, "Static") == 0) {
+                tiles[idx]->setStatic(currentValue);
+            }
+            else if (strcmp(label, "Massless") == 0) {
+                tiles[idx]->setMassless(currentValue);
+            }
+            else if (strcmp(label, "Tile") == 0) {
+                tiles[idx]->setTile(currentValue);
+            }
+        }
+    }
+    if (ImGui::IsItemHovered()) {
+        if (strcmp(label, "Trigger") == 0) {
+            ImGui::SetTooltip("Mark the tile as a trigger. Triggers do not impede player movement and are often used for items like checkpoints and collectables that execute actions on contact.");
+        }
+        else if (strcmp(label, "Static") == 0) {
+            ImGui::SetTooltip("Set the tile to be static. Static tiles do not move and cannot be affected by physics, suitable for immovable objects like walls.");
+        }
+        else if (strcmp(label, "Massless") == 0) {
+            ImGui::SetTooltip("Make the tile massless. Massless tiles are not affected by gravitational forces and are typically used for items that should not fall or weigh down. Collision is still detected");
+        }
+        else if (strcmp(label, "Tile") == 0) {
+            ImGui::SetTooltip("Mark the object as a tile. Used for general tile properties in the game's level design. Tiles do not collide with other tiles.");
         }
     }
 }
-
 
 void TileManager::addNewTile() {
     auto newTile = std::make_unique<Tiles>();

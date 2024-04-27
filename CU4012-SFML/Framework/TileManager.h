@@ -2,6 +2,7 @@
 #include "GameObject.h"
 #include "World.h"
 #include "Tiles.h"
+#include "TextureManager.h"
 #include <fstream>
 #include <vector>
 #include <string>
@@ -11,21 +12,19 @@
 class TileManager : public GameObject
 {
     std::set<int> selectedTileIndices; // Set to keep track of selected tile indices
-
+    bool recentlyCleared = false; // Used to prevent multiple tiles from being selected at once
     int activeTileIndex = -1; // -1 indicates no tile is actively being edited
     bool tilesLoaded = false;
     //std::vector<Tiles> tiles;
 
     std::vector<std::unique_ptr<Tiles>> tiles;
+    
+    TextureManager textureManager;
 
     std::string filePath; // File to store tile data
 
     World* world;
     sf::View* view;
-
-    sf::Texture collectableTexture;
-    sf::Texture platformTexture;
-    sf::Texture wallTexture;
 
     bool showDebugCollisionBox;
 
@@ -52,12 +51,6 @@ public:
 
     std::string getFilePath() { return filePath; }
 
-    void setCollectableTexture(std::string path);
-
-    void setPlatformTexture(std::string path);
-
-    void setWallTexture(std::string path);
-
     void RemoveCollectable();
 
     void ShowDebugCollisionBox(bool b) { showDebugCollisionBox = b; }
@@ -65,8 +58,11 @@ public:
     void DrawImGui();
 
     void displayTilePositions();
+    void displayTileScales();
 
     bool isInputTextActive() { return inputTextActive; }
+
+    void displayTextureSelection(TextureManager& textureManager);
 
     bool allTilesHaveSameTag();
     void displayTileProperties(Tiles& tile);

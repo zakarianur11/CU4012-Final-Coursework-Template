@@ -83,6 +83,10 @@ public:
 	void setColor(sf::Color c) { collisionBoxDebug.setOutlineColor(c); }
 	void setTag(const std::string& t) { tag = t; }
 
+
+	void setTextureName(const std::string& name) { textureName = name; }
+	std::string getTextureName() const { return textureName; }
+
 protected:
 	// Collision functions
 	void setCollisionBox(float x, float y, float width, float height)
@@ -119,6 +123,7 @@ protected:
 			inverseMass = 1 / mass;
 		}
 	}
+
 
 	void setInertia(float i)
 	{
@@ -171,7 +176,8 @@ private:
 	sf::RectangleShape collisionBoxDebug;
 	bool Colliding;
 
-
+	//Textures
+	std::string textureName;
 
 	std::string tag;
 	std::string collidingTag;
