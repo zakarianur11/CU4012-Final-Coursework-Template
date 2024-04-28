@@ -57,6 +57,7 @@ void TileEditor::handleInput(float dt)
 		// Reset the view to the original size
 		view->setSize(originalViewSize);
 		view->setCenter(window->getSize().x / 2, window->getSize().y / 2);
+		view->zoom(1.0f);
 	}
 }
 

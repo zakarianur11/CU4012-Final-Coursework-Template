@@ -498,10 +498,12 @@ void TileManager::displayTextureSelection(TextureManager& textureManager) {
                 current_item = n;
                 // Update the texture on all selected tiles
                 sf::Texture* selectedTexture = textureManager.getTexture(textureNames[n]);
-                for (auto idx : selectedTileIndices) {
-                    tiles[idx]->setTexture(selectedTexture);
+                for (auto idx : selectedTileIndices) 
+                {
+                    tiles[idx]->setTexture(selectedTexture,true);
                     tiles[idx]->setTextureName(textureNames[n]);  // Save the texture name
                 }
+                
             }
             if (is_selected) {
                 ImGui::SetItemDefaultFocus();  // Automatically scroll to the selected item

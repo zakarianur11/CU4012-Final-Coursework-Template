@@ -5,3 +5,4 @@ Wall,433.271,293.841,68.2,92.5,0,1,0,1,Wall.png
 Collectable,440,82,50,50,1,0,1,1,Collectable.png
 Collectable,557,86,50,50,1,0,1,1,Collectable.png
 Collectable,718,82,50,50,1,0,1,1,Collectable.png
+Collectable,339,208,50,50,1,0,1,1,Collectable.png

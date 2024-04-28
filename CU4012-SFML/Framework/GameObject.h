@@ -56,7 +56,6 @@ public:
 	void clearCollision() { collidingTag = ""; }
 	void UpdatePhysics(sf::Vector2f* gravity, float deltaTime);
 
-
 	//Collision Types 
 	void setTrigger(bool t) { isTrigger = t; }
 	bool getTrigger() { return isTrigger; }
