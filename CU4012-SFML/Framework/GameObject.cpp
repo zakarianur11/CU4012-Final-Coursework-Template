@@ -10,6 +10,8 @@ GameObject::GameObject()
     collisionBoxDebug.setFillColor(sf::Color::Transparent);
     collisionBoxDebug.setOutlineColor(sf::Color::Red);
     collisionBoxDebug.setOutlineThickness(1.f);
+
+
 }
 
 GameObject::~GameObject()
@@ -29,9 +31,20 @@ void GameObject::update(float dt)
 
 void GameObject::updateCollisionBox(float dt)
 {
-    collisionBox = sf::FloatRect(getPosition().x, getPosition().y, getSize().x, getSize().y);
-    setDebugCollisionBox(getPosition().x, getPosition().y, getSize().x, getSize().y);
-
+    //Check if collision box width and height are empty 
+    if (collisionBox.width == 0 && collisionBox.height == 0)
+	{
+		//Set the collision box width and height to the sprite width and height
+        collisionBox = sf::FloatRect(getPosition().x, getPosition().y, getSize().x, getSize().y);
+        setDebugCollisionBox(getPosition().x, getPosition().y, getSize().x, getSize().y);
+	}
+	else
+	{
+		//Update the collision box position to the sprite position
+		collisionBox.left = getPosition().x;
+		collisionBox.top = getPosition().y;
+		setDebugCollisionBox(collisionBox.left, collisionBox.top, collisionBox.width, collisionBox.height);
+	}
 }
 
 // Sets the velocity of the sprite
