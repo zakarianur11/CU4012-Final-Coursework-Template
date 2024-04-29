@@ -9,6 +9,7 @@
 #include "Framework/AudioManager.h"
 #include <string>
 #include <iostream>
+#include "Mario.h"
 
 class Level : public BaseLevel{
 public:
@@ -21,4 +22,6 @@ public:
 	void adjustViewToWindowSize(unsigned int width, unsigned int height);
 private:
 	// Default variables for level class.
+	
+	Mario mario;
 };
