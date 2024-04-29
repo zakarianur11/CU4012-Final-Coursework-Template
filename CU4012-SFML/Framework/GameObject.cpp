@@ -277,20 +277,30 @@ bool GameObject::checkCollision(GameObject* otherBox)
 // Colliding object is passed in for information
 // e.g. compare sprite positions to determine new velocity direction.
 // e.g. checking sprite type (world, enemy, bullet etc) so response is based on that.
+//void GameObject::collisionResponse(GameObject* collider)
+//{
+//    // Check if the collider is not static and not a tile
+//    if (!collider->getStatic() && !collider->getTile())
+//    {
+//        // If the collider is neither static nor a tile, update the colliding tag
+//        collidingTag = collider->getTag();
+//    }
+//    else if (collider->getTile() && collider->getTag() == "Wall")
+//    {
+//        collidingTag = collider->getTag();
+//    }
+//    else if (collider->getTile() && collider->getTag() == "Collectable")
+//    {
+//        collidingTag = collider->getTag();
+//    }
+//}
 void GameObject::collisionResponse(GameObject* collider)
 {
-    // Check if the collider is not static and not a tile
-    if (!collider->getStatic() && !collider->getTile())
+    // Check if collider is a tile and has a specific tag ("Wall" or "Collectable"), or if it is neither static nor a tile.
+    if ((collider->getTile() && (collider->getTag() == "Wall" || collider->getTag() == "Collectable")) ||
+        (!collider->getStatic() && !collider->getTile()))
     {
-        // If the collider is neither static nor a tile, update the colliding tag
-        collidingTag = collider->getTag();
-    }
-    else if (collider->getTile() && collider->getTag() == "Wall")
-    {
-        collidingTag = collider->getTag();
-    }
-    else if (collider->getTile() && collider->getTag() == "Collectable")
-    {
+        // Update the colliding tag
         collidingTag = collider->getTag();
     }
 }
