@@ -8,7 +8,6 @@ Level::Level(sf::RenderWindow* hwnd, Input* in, GameState* gs,sf::View* v, World
 	world = w;	
 	tileManager = tm;
 	audioManager = new AudioManager();
-
 }
 
 Level::~Level()
@@ -55,7 +54,11 @@ void Level::update(float dt)
 // Render level
 void Level::render()
 {
-	tileManager->render(false);
+	if (gameState->getCurrentState() == State::LEVEL)
+	{
+		tileManager->render(false);
+	}
+
 }
 
 

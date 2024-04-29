@@ -15,6 +15,7 @@ private:
 	{
 		int x, y;
 		MouseState left, right;
+		int wheelDelta;  // Store wheel scroll delta here
 	};
 	
 public:
@@ -39,6 +40,12 @@ public:
 	void setRightMouse(MouseState state);
 	bool isRightMouseDown();
 	bool isRightMousePressed();
+
+
+	// Mouse wheel functions
+	void setMouseWheelDelta(int delta);
+	int getMouseWheelDelta();
+	void clearMouseWheelDelta(); // To reset the delta after each frame
 	
 private:
 	// Array of booleans representing keys (pressed = true, released = false)

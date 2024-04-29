@@ -8,7 +8,27 @@ Input::Input()
 	mouse.right = MouseState::UP;
 	mouse.x = 0;
 	mouse.y = 0;
+	mouse.wheelDelta = 0;  // Initialize wheel delta
 }
+
+// Set the mouse wheel delta
+void Input::setMouseWheelDelta(int delta)
+{
+	mouse.wheelDelta = delta;
+}
+
+// Get the mouse wheel delta
+int Input::getMouseWheelDelta()
+{
+	return mouse.wheelDelta;
+}
+
+// Clear the mouse wheel delta
+void Input::clearMouseWheelDelta()
+{
+	mouse.wheelDelta = 0;
+}
+
 
 // Set a specific key state to true/down.
 void Input::setKeyDown(int key)
@@ -67,6 +87,8 @@ void Input::update()
 	{
 		mouse.right = MouseState::UP;
 	}
+
+	clearMouseWheelDelta();  // Reset the wheel delta at the end of each frame
 }
 
 // Stores current mouse x-coordinate

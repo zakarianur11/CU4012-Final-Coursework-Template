@@ -143,7 +143,14 @@ void TileEditor::moveView(float dt)
 			view->zoom(0.9995f);
 		}
 	}
-	
+	// Handle mouse wheel zoom inputs
+	int wheelDelta = input->getMouseWheelDelta();
+	if (wheelDelta != 0) {
+		float zoomFactor = wheelDelta > 0 ? 0.9f : 1.1f;  // More significant zoom change per scroll
+		float zoomAdjustment = pow(zoomFactor, abs(wheelDelta));  // Apply the factor power of scroll intensity
+		currentZoomLevel *= zoomAdjustment;
+		view->zoom(zoomAdjustment);
+	}
 	// Set the new view
 	window->setView(*view);
 }
